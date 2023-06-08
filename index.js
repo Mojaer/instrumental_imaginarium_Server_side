@@ -28,20 +28,36 @@ async function run() {
         await client.connect();
         const database = client.db('instrumental-imaginarium');
         const userCollection = database.collection('users')
+        const classCollection = database.collection('Classes');
 
         //get method for the user collection
         app.get('/users', async (req, res) => {
-            const result = await userCollection.find()
+            const result = await userCollection.find().toArray()
+            // console.log(result)
             res.status(200).send(result)
         })
 
+        // admin:path to update the user role
+        app.patch('/users/:id', async (req, res) => {
+            const role = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateRole = {
+                $set: {
+                    role: role.role
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateRole)
+            res.send(result)
+        })
 
-        // post methos for the user collection
+
+        // admin:post method for the user collection
         app.post('/users', async (req, res) => {
             const user = req.body
             const query = { email: user.email }
             const previousUser = await userCollection.findOne(query)
-            console.log(previousUser);
+            // console.log(previousUser);
             if (previousUser) {
                 res.send('user already exist')
             }
@@ -49,6 +65,14 @@ async function run() {
                 const result = await userCollection.insertOne(user);
                 res.status(200).send(result);
             }
+        })
+
+
+        //Classes added to the server
+        app.post('/classes', async (req, res) => {
+            const classDetails = req.body
+            const result = await classCollection.insertOne(classDetails);
+            res.status(200).send(result);
         })
 
 
