@@ -29,6 +29,14 @@ async function run() {
         const database = client.db('instrumental-imaginarium');
         const userCollection = database.collection('users')
 
+        //get method for the user collection
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find()
+            res.status(200).send(result)
+        })
+
+
+        // post methos for the user collection
         app.post('/users', async (req, res) => {
             const user = req.body
             const query = { email: user.email }
@@ -41,7 +49,6 @@ async function run() {
                 const result = await userCollection.insertOne(user);
                 res.status(200).send(result);
             }
-
         })
 
 
