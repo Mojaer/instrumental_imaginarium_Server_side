@@ -68,6 +68,14 @@ async function run() {
         })
 
 
+        //specific instructor"s Classes get from the server
+        app.get('/classes', async (req, res) => {
+            const email = req.query.email
+            const query = { InstructorEmail: email }
+            const result = await classCollection.find(query).toArray();
+            res.send(result);
+        })
+
         //Classes added to the server
         app.post('/classes', async (req, res) => {
             const classDetails = req.body
