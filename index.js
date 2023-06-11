@@ -102,7 +102,7 @@ async function run() {
         app.patch('/classes/:id', async (req, res) => {
             const id = req.params.id
             const classUpdate = req.body
-            console.log(classUpdate, id)
+            // console.log(classUpdate, id)
             const filter = { _id: new ObjectId(id) }
             const updateClass = {
                 $set: {
@@ -113,6 +113,22 @@ async function run() {
                 },
             };
             const result = await classCollection.updateOne(filter, updateClass);
+            res.send(result);
+        })
+
+        //update the status of the class
+        app.patch('/classStatus/:id', async (req, res) => {
+            const id = req.params.id;
+            const status = req.body
+            // console.log(status, id);
+            const filter = { _id: new ObjectId(id) };
+            const updateStatus = {
+                $set: {
+                    classStatus: status.status
+                },
+            };
+            const result = await classCollection.updateOne(filter, updateStatus)
+            // console.log(result);
             res.send(result);
         })
 
