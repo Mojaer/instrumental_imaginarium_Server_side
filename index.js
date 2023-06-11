@@ -91,6 +91,24 @@ async function run() {
             res.status(200).send(result);
         })
 
+        //classes to update TODO: patch
+        app.patch('/classes/:id', async (req, res) => {
+            const id = req.params.id
+            const classUpdate = req.body
+            console.log(classUpdate, id)
+            const filter = { _id: new ObjectId(id) }
+            const updateClass = {
+                $set: {
+                    ClassName: classUpdate.updateClassName,
+                    availableSeats: classUpdate.updateAvailableSeats,
+                    price: classUpdate.updatePrice,
+                    ClassImage: classUpdate.ClassImg
+                },
+            };
+            const result = await classCollection.updateOne(filter, updateClass);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
