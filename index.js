@@ -29,6 +29,7 @@ async function run() {
         const database = client.db('instrumental-imaginarium');
         const userCollection = database.collection('users')
         const classCollection = database.collection('Classes');
+        const selectedClassCollection = database.collection('selectedClasses');
 
         //get method for the user collection
         app.get('/users', async (req, res) => {
@@ -51,21 +52,6 @@ async function run() {
             res.send(result)
         })
 
-
-        // admin:post method for the user collection
-        app.post('/users', async (req, res) => {
-            const user = req.body
-            const query = { email: user.email }
-            const previousUser = await userCollection.findOne(query)
-            // console.log(previousUser);
-            if (previousUser) {
-                res.send('user already exist')
-            }
-            else {
-                const result = await userCollection.insertOne(user);
-                res.status(200).send(result);
-            }
-        })
 
 
         //specific instructor"s Classes get from the server
@@ -96,6 +82,37 @@ async function run() {
             const classDetails = req.body
             const result = await classCollection.insertOne(classDetails);
             res.status(200).send(result);
+        })
+
+        // admin:post method for the user collection
+        app.post('/users', async (req, res) => {
+            const user = req.body
+            const query = { email: user.email }
+            const previousUser = await userCollection.findOne(query)
+            // console.log(previousUser);
+            if (previousUser) {
+                res.send('user already exist')
+            }
+            else {
+                const result = await userCollection.insertOne(user);
+                res.status(200).send(result);
+            }
+        })
+
+        //Students selected class post
+        app.post('/selectedClass', async (req, res) => {
+            const selectedClass = req.body;
+            const query = { id: selectedClass.id, studentEmail: selectedClass.studentEmail }
+            const existing = await selectedClassCollection.findOne(query);
+            if (existing) {
+                res.send({ message: 'you have already selected this class' })
+            }
+            else {
+                const result = await selectedClassCollection.insertOne(selectedClass)
+                res.send(result)
+            }
+
+
         })
 
         //classes to update TODO: patch
