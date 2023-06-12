@@ -132,6 +132,21 @@ async function run() {
             res.send(result);
         })
 
+        //set the feedback of the class
+        app.patch('/classFeedback/:id', async (req, res) => {
+            const id = req.params.id;
+            const { feedback } = req.body
+            // console.log(feedback, id);
+            const filter = { _id: new ObjectId(id) };
+            const updateFeedback = {
+                $set: {
+                    feedback: feedback,
+                },
+            };
+            const result = await classCollection.updateOne(filter, updateFeedback)
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
