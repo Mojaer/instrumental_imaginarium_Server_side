@@ -76,6 +76,12 @@ async function run() {
             res.send(result);
         })
 
+        // get all selected classes by students 
+        app.get('/selectedClasses', async (req, res) => {
+            const result = await selectedClassCollection.find().toArray();
+            res.send(result);
+        })
+
 
         //Classes added to the server
         app.post('/classes', async (req, res) => {
@@ -83,6 +89,8 @@ async function run() {
             const result = await classCollection.insertOne(classDetails);
             res.status(200).send(result);
         })
+
+
 
         // admin:post method for the user collection
         app.post('/users', async (req, res) => {
@@ -162,6 +170,14 @@ async function run() {
             };
             const result = await classCollection.updateOne(filter, updateFeedback)
             res.send(result);
+        })
+
+        //Delete the class by the student
+        app.delete('/selectedClass/:id', async (req, res) => {
+            const id = req.params
+            const query = { _id: new ObjectId(id) }
+            const result = await selectedClassCollection.deleteOne(query);
+            res.status(200).send(result);
         })
 
 
