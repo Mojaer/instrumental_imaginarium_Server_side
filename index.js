@@ -2,11 +2,14 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 3000
+const stripe = require("stripe")('sk_test_51NFLIYAO8cJgagXe52dlbiBDw4LBTPrRxCrkOJuOnaQqpi3XpeKh0Hz30Lu7dQtCOjuXfO7sOYXDEyjHGdhFMJP700gr8z1O1p')
+// (process.env.PAYMENT_SECRET_KEY does not work)
 
 
 app.use(express.json());
 app.use(cors());
 require('dotenv').config();
+
 
 
 
@@ -25,11 +28,12 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         const database = client.db('instrumental-imaginarium');
         const userCollection = database.collection('users')
         const classCollection = database.collection('Classes');
         const selectedClassCollection = database.collection('selectedClasses');
+        const paymentCollection = database.collection('payments');
 
         //get method for the user collection
         app.get('/users', async (req, res) => {
@@ -179,6 +183,53 @@ async function run() {
             const result = await selectedClassCollection.deleteOne(query);
             res.status(200).send(result);
         })
+
+        // Payment method 
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100
+            // console.log(price, amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+
+        })
+
+        //get all payments
+
+        app.get('/payments', async (req, res) => {
+            const result = await paymentCollection.find().toArray();
+            res.send(result);
+        });
+
+        // payment save 
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const query = { _id: new ObjectId(payment.id) }
+            const Class = await classCollection.findOne(query)
+            const availableSeats = parseInt(Class.availableSeats) - 1
+            const seatBooked = parseInt(Class.seatBooked) + 1
+            const updateDoc = {
+                $set: {
+                    seatBooked: seatBooked,
+                    availableSeats: availableSeats
+                },
+            };
+            const DeleteSelected = await selectedClassCollection.deleteOne({ id: payment.id })
+            const update = await classCollection.updateOne(query, updateDoc);
+            // console.log(update);
+            const result = await paymentCollection.insertOne(payment);
+            res.send(result);
+
+        });
+
+
+
 
 
         // Send a ping to confirm a successful connection
